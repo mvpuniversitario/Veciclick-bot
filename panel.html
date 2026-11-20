@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VeciClick · Panel del tendero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --azul:#1F3FB8; --azul-osc:#132A80; --naranja:#F7841E; --amarillo:#FFC83D;
+    --crema:#FFF6E6; --texto:#1B1F3B; --gris:#6B6F86; --borde:#EADFC9; --verde:#1E9E62; --rojo:#D64545;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Poppins,system-ui,sans-serif;background:var(--crema);color:var(--texto)}
+  header{background:var(--azul);color:#fff;padding:18px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .logo{font-weight:800;font-size:26px;letter-spacing:-.5px}
+  .logo span{color:var(--amarillo)}
+  .tienda{background:rgba(255,255,255,.14);padding:6px 14px;border-radius:999px;font-size:14px}
+  .vivo{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;opacity:.9}
+  .punto{width:10px;height:10px;border-radius:50%;background:#3EE08F;box-shadow:0 0 0 0 rgba(62,224,143,.7);animation:pulso 1.6s infinite}
+  @keyframes pulso{70%{box-shadow:0 0 0 10px rgba(62,224,143,0)}100%{box-shadow:0 0 0 0 rgba(62,224,143,0)}}
+  main{max-width:1200px;margin:0 auto;padding:24px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:22px}
+  .kpi{background:#fff;border-radius:18px;padding:18px 20px;border:1px solid var(--borde)}
+  .kpi small{color:var(--gris);font-size:13px}
+  .kpi b{display:block;font-size:30px;font-weight:700;margin-top:4px}
+  .kpi.n b{color:var(--naranja)} .kpi.a b{color:var(--azul)}
+  .avisos{background:var(--amarillo);border-radius:14px;padding:12px 16px;margin-bottom:18px;display:none;align-items:center;gap:12px;font-weight:500}
+  .avisos button{margin-left:auto}
+  h2{font-size:18px;margin:6px 0 14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+  .card{background:#fff;border-radius:18px;border:1px solid var(--borde);padding:18px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--c,var(--naranja))}
+  .card.nuevo{animation:entra .5s ease}
+  @keyframes entra{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+  .top{display:flex;align-items:center;gap:10px}
+  .num{font-weight:700;font-size:18px}
+  .estado{margin-left:auto;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;background:#FFE7CF;color:#A2540B}
+  .cliente{font-size:14px;color:var(--gris)}
+  ul{margin:0;padding:0;list-style:none;font-size:14px;border-top:1px dashed var(--borde);border-bottom:1px dashed var(--borde)}
+  li{display:flex;justify-content:space-between;padding:6px 0}
+  .total{display:flex;justify-content:space-between;font-weight:700;font-size:17px}
+  .meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+  .chip{background:var(--crema);border:1px solid var(--borde);padding:3px 10px;border-radius:999px}
+  .chip.ok{background:#DDF5E9;border-color:#BCE8D2;color:#13714A}
+  .chip.pend{background:#FFF1D6;border-color:#FFD98A;color:#8A5A00}
+  .acciones{display:flex;gap:8px;flex-wrap:wrap}
+  button{font-family:inherit;font-size:13px;font-weight:600;border:0;border-radius:12px;padding:9px 14px;cursor:pointer}
+  .b1{background:var(--azul);color:#fff}.b2{background:var(--naranja);color:#fff}.b3{background:var(--verde);color:#fff}.b4{background:#F1E9DA;color:var(--texto)}
+  button:disabled{opacity:.35;cursor:default}
+  .vacio{background:#fff;border:2px dashed var(--borde);border-radius:18px;padding:40px;text-align:center;color:var(--gris)}
+  .vacio b{display:block;color:var(--texto);font-size:18px;margin-bottom:6px}
+  footer{text-align:center;color:var(--gris);font-size:12px;padding:20px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Veci<span>Click</span></div>
+  <div class="tienda" id="tienda">Panel del tendero</div>
+  <div class="vivo"><div class="punto"></div> Recibiendo pedidos en vivo</div>
+</header>
+<main>
+  <section class="kpis">
+    <div class="kpi n"><small>Pedidos por atender</small><b id="kPend">0</b></div>
+    <div class="kpi a"><small>Pedidos de hoy</small><b id="kHoy">0</b></div>
+    <div class="kpi"><small>Vendido hoy (sin cancelados)</small><b id="kVenta">$0</b></div>
+    <div class="kpi"><small>Comprobantes por revisar</small><b id="kComp">0</b></div>
+  </section>
+  <div class="avisos" id="avisos"></div>
+  <h2>Pedidos</h2>
+  <div class="grid" id="lista"></div>
+</main>
+<footer>VeciClick · el sistema suma, organiza y avisa por ti</footer>
+
+<script>
+const pesos = n => "$" + Math.round(n).toLocaleString("es-CO").replace(/,/g,".");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const hora = iso => new Date(iso).toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
+const ESTADO = {
+  nuevo:{t:"Nuevo",c:"var(--naranja)",bg:"#FFE7CF",fg:"#A2540B"},
+  confirmado:{t:"Confirmado",c:"var(--azul)",bg:"#DCE4FF",fg:"#1F3FB8"},
+  en_camino:{t:"En camino / listo",c:"var(--amarillo)",bg:"#FFF1C2",fg:"#7A5B00"},
+  entregado:{t:"Entregado",c:"var(--verde)",bg:"#DDF5E9",fg:"#13714A"},
+  cancelado:{t:"Cancelado",c:"var(--rojo)",bg:"#FBE0E0",fg:"#A83232"}
+};
+let vistos = new Set(), primera = true;
+
+function sonar(){
+  try{const a=new (window.AudioContext||window.webkitAudioContext)();const o=a.createOscillator();const g=a.createGain();
+  o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.value=.08;o.start();o.stop(a.currentTime+.18);}catch(e){}
+}
+
+async function cambiar(id, estado){
+  await fetch(`/api/pedidos/${id}/estado`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({estado})});
+  cargar();
+}
+async function limpiarAvisos(){ await fetch("/api/avisos/limpiar",{method:"POST"}); cargar(); }
+
+function tarjeta(p){
+  const e = ESTADO[p.estado] || ESTADO.nuevo;
+  const fin = p.estado==="entregado"||p.estado==="cancelado";
+  const comp = (p.pago==="Nequi"||p.pago==="Transferencia")
+    ? `<span class="chip ${p.comprobante?"ok":"pend"}">${p.comprobante?"📎 Comprobante recibido":"⏳ Esperando comprobante"}</span>` : "";
+  return `<div class="card ${vistos.has(p.id)?"":"nuevo"}" style="--c:${e.c}">
+    <div class="top"><div class="num">#${p.id}</div><div class="cliente">${esc(p.cliente)} · ${hora(p.creado)}</div>
+      <div class="estado" style="background:${e.bg};color:${e.fg}">${e.t}</div></div>
+    <ul>${p.items.map(i=>`<li><span>${i.cantidad} × ${esc(i.nombre)}</span><span>${pesos(i.precio*i.cantidad)}</span></li>`).join("")}</ul>
+    <div class="total"><span>Total</span><span>${pesos(p.total)}</span></div>
+    <div class="meta"><span class="chip">${p.entrega==="Domicilio"?"🛵":"🏪"} ${esc(p.entrega)}${p.direccion?": "+esc(p.direccion):""}</span>
+      <span class="chip">💳 ${esc(p.pago)}</span>${comp}</div>
+    <div class="acciones">
+      <button class="b1" ${p.estado!=="nuevo"?"disabled":""} onclick="cambiar(${p.id},'confirmado')">✅ Confirmar</button>
+      <button class="b2" ${p.estado!=="confirmado"?"disabled":""} onclick="cambiar(${p.id},'en_camino')">${p.entrega==="Domicilio"?"🛵 En camino":"🏪 Listo"}</button>
+      <button class="b3" ${p.estado!=="en_camino"?"disabled":""} onclick="cambiar(${p.id},'entregado')">✔ Entregado</button>
+      <button class="b4" ${fin?"disabled":""} onclick="cambiar(${p.id},'cancelado')">✕</button>
+    </div></div>`;
+}
+
+async function cargar(){
+  try{
+    const r = await fetch("/api/pedidos"); const d = await r.json();
+    document.getElementById("tienda").textContent = "Panel de " + d.tienda;
+    const hoy = new Date().toDateString();
+    const deHoy = d.pedidos.filter(p=>new Date(p.creado).toDateString()===hoy);
+    document.getElementById("kPend").textContent = d.pedidos.filter(p=>p.estado==="nuevo").length;
+    document.getElementById("kHoy").textContent = deHoy.length;
+    document.getElementById("kVenta").textContent = pesos(deHoy.filter(p=>p.estado!=="cancelado").reduce((s,p)=>s+p.total,0));
+    document.getElementById("kComp").textContent = d.pedidos.filter(p=>p.comprobante && p.estado==="nuevo").length;
+    const nuevos = d.pedidos.filter(p=>!vistos.has(p.id));
+    if(!primera && nuevos.length) sonar();
+    document.getElementById("lista").innerHTML = d.pedidos.length ? d.pedidos.map(tarjeta).join("")
+      : `<div class="vacio"><b>Todavía no hay pedidos</b>Cuando un cliente pida por WhatsApp, aparecerá aquí al instante con el total ya calculado.</div>`;
+    d.pedidos.forEach(p=>vistos.add(p.id)); primera=false;
+    const av = document.getElementById("avisos");
+    if(d.avisos.length){ av.style.display="flex";
+      av.innerHTML = `💬 ${d.avisos.map(a=>esc(a.cliente)).join(", ")} ${d.avisos.length>1?"quieren":"quiere"} hablar con la tienda por WhatsApp <button class="b4" onclick="limpiarAvisos()">Listo</button>`;
+    } else av.style.display="none";
+  }catch(e){}
+}
+cargar(); setInterval(cargar, 3000);
+</script>
+</body>
+</html>

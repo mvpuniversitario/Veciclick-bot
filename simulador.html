@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VeciClick · Simulador del chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--wa:#075E54;--wa2:#128C7E;--burbuja:#DCF8C6;--fondo:#ECE5DD;--azul:#1F3FB8;--naranja:#F7841E;--crema:#FFF6E6}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Poppins,system-ui,sans-serif;background:var(--crema);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .tel{width:390px;max-width:100%;height:760px;max-height:calc(100vh - 40px);background:var(--fondo);border-radius:34px;border:10px solid #1B1F3B;display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+  .barra{background:var(--wa);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px}
+  .avatar{width:38px;height:38px;border-radius:50%;background:var(--naranja);display:flex;align-items:center;justify-content:center;font-weight:700}
+  .barra b{display:block;font-size:15px}.barra small{opacity:.8;font-size:12px}
+  .chat{flex:1;overflow-y:auto;padding:14px 10px;display:flex;flex-direction:column;gap:6px}
+  .msg{max-width:84%;padding:8px 10px 6px;border-radius:10px;font-size:14px;line-height:1.4;white-space:pre-wrap;word-wrap:break-word;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+  .yo{align-self:flex-end;background:var(--burbuja);border-top-right-radius:2px}
+  .bot{align-self:flex-start;background:#fff;border-top-left-radius:2px}
+  .hora{display:block;text-align:right;font-size:10px;color:#8a8a8a;margin-top:2px}
+  .encab{font-weight:700;margin-bottom:4px}.pie{font-size:12px;color:#8a8a8a;margin-top:4px}
+  .btns{align-self:flex-start;max-width:84%;width:84%;display:flex;flex-direction:column;gap:4px;margin-top:-2px}
+  .btns button,.abrir{background:#fff;border:0;border-radius:10px;padding:9px;font-family:inherit;font-size:14px;color:#027EB5;font-weight:500;cursor:pointer;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+  .btns button:disabled{color:#aaa;cursor:default}
+  .entrada{display:flex;gap:6px;padding:8px;background:var(--fondo)}
+  .entrada input{flex:1;min-width:0;border:0;border-radius:22px;padding:11px 16px;font-family:inherit;font-size:14px;outline:none}
+  .entrada button{flex:0 0 44px;width:44px;height:44px;border-radius:50%;border:0;background:var(--wa2);color:#fff;font-size:18px;cursor:pointer}
+  .hoja{position:absolute;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end}
+  .hoja .caja{background:#fff;width:100%;border-radius:18px 18px 0 0;max-height:75%;overflow-y:auto;padding:10px 0 16px}
+  .hoja h4{margin:6px 18px 4px;font-size:13px;color:var(--wa2)}
+  .fila{padding:10px 18px;cursor:pointer;border-bottom:1px solid #f0f0f0}
+  .fila:hover{background:#f6f6f6}.fila b{display:block;font-size:14px;font-weight:500}.fila small{color:#777;font-size:12px}
+  .cerrar{display:block;margin:10px auto 0;border:0;background:none;color:#027EB5;font-family:inherit;font-size:14px;cursor:pointer}
+  @media(max-width:500px){.nota{display:none}body{padding:0}.tel{border-radius:0;border:0;height:100vh;max-height:none}}
+  .nota{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--azul);color:#fff;font-size:12px;padding:6px 14px;border-radius:999px}
+</style>
+</head>
+<body>
+<div class="nota">Modo simulador · misma lógica que el bot de WhatsApp</div>
+<div class="tel">
+  <div class="barra"><div class="avatar">VC</div><div><b id="nombreTienda">Tienda</b><small>Cuenta de empresa · en línea</small></div></div>
+  <div class="chat" id="chat"></div>
+  <div class="entrada">
+    <button title="Enviar comprobante" onclick="comprobante()" style="background:#fff;color:#555">📎</button>
+    <input id="txt" placeholder="Escribe un mensaje" autocomplete="off">
+    <button onclick="enviarTexto()">➤</button>
+  </div>
+  <div class="hoja" id="hoja"><div class="caja" id="caja"></div></div>
+</div>
+<script>
+const USUARIO = "sim-1", NOMBRE = "Cliente demo";
+const chat = document.getElementById("chat");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = s => esc(s).replace(/\*([^*\n]+)\*/g,"<b>$1</b>");
+const hh = () => new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
+const bajar = () => chat.scrollTop = chat.scrollHeight;
+
+fetch("/api/pedidos").then(r=>r.json()).then(d=>document.getElementById("nombreTienda").textContent=d.tienda).catch(()=>{});
+
+function burbuja(html, quien){ const d=document.createElement("div"); d.className="msg "+quien; d.innerHTML=html+`<span class="hora">${hh()}</span>`; chat.appendChild(d); bajar(); }
+
+function pintar(m){
+  if(m.type==="text") return burbuja(fmt(m.text.body),"bot");
+  const i = m.interactive;
+  let html = (i.header? `<div class="encab">${fmt(i.header.text)}</div>`:"") + fmt(i.body.text) + (i.footer? `<div class="pie">${fmt(i.footer.text)}</div>`:"");
+  burbuja(html,"bot");
+  const b = document.createElement("div"); b.className="btns";
+  if(i.type==="button"){
+    i.action.buttons.forEach(x=>{ const bt=document.createElement("button"); bt.textContent=x.reply.title;
+      bt.onclick=()=>{ b.querySelectorAll("button").forEach(z=>z.disabled=true); mandar("id",x.reply.id,x.reply.title); }; b.appendChild(bt); });
+  } else if(i.type==="list"){
+    const bt=document.createElement("button"); bt.textContent="☰ "+i.action.button; bt.onclick=()=>abrirLista(i.action.sections); b.appendChild(bt);
+  }
+  chat.appendChild(b); bajar();
+}
+
+function abrirLista(secciones){
+  const caja=document.getElementById("caja");
+  caja.innerHTML = secciones.map(s=>`<h4>${esc(s.title)}</h4>`+s.rows.map(r=>`<div class="fila" data-id="${esc(r.id)}" data-t="${esc(r.title)}"><b>${esc(r.title)}</b><small>${esc(r.description||"")}</small></div>`).join("")).join("")
+    + `<button class="cerrar" onclick="cerrarLista()">Cerrar</button>`;
+  caja.querySelectorAll(".fila").forEach(f=>f.onclick=()=>{ cerrarLista(); mandar("id",f.dataset.id,f.dataset.t); });
+  document.getElementById("hoja").style.display="flex";
+}
+function cerrarLista(){ document.getElementById("hoja").style.display="none"; }
+
+async function mandar(tipo, valor, mostrar){
+  burbuja(fmt(mostrar ?? valor),"yo");
+  const r = await fetch("/api/sim/enviar",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({usuario:USUARIO,nombre:NOMBRE,tipo,valor})});
+  const d = await r.json(); for(const m of d.mensajes){ await new Promise(s=>setTimeout(s,350)); pintar(m); }
+}
+function enviarTexto(){ const t=document.getElementById("txt"); const v=t.value.trim(); if(!v) return; t.value=""; mandar("texto",v); }
+function comprobante(){ mandar("imagen","", "📷 Foto del comprobante"); }
+document.getElementById("txt").addEventListener("keydown",e=>{ if(e.key==="Enter") enviarTexto(); });
+
+// Mensajes que manda el tendero desde el panel (confirmado, en camino...)
+setInterval(async()=>{ try{ const d=await (await fetch("/api/sim/nuevos?usuario="+USUARIO)).json(); d.mensajes.forEach(pintar);}catch(e){} }, 2000);
+</script>
+</body>
+</html>
