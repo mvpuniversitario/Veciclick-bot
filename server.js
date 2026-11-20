@@ -342,6 +342,8 @@ const servidor = http.createServer(async (req, res) => {
       const body = await leerCuerpo(req);
       responder(res, 200, { ok: true }); // responder rápido a Meta
       diagnostico.ultimoWebhook = ahora();
+      diagnostico.ultimosWebhooks = [{ hora: ahora(), contenido: JSON.stringify(body).slice(0, 1200) }, ...(diagnostico.ultimosWebhooks || [])].slice(0, 5);
+      console.log("Webhook recibido:", JSON.stringify(body).slice(0, 2000));
       for (const entry of body.entry || []) {
         for (const change of entry.changes || []) {
           const v = change.value || {};
