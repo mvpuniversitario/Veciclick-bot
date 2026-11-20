@@ -306,7 +306,11 @@ function responder(res, codigo, cuerpo, tipo = "application/json") {
 }
 
 function archivo(res, nombre) {
-  fs.readFile(path.join(__dirname, "public", nombre), (err, data) => {
+  // Busca la página en la carpeta "public" o, si no está, junto a server.js
+  const opciones = [path.join(__dirname, "public", nombre), path.join(__dirname, nombre)];
+  const encontrado = opciones.find((p) => fs.existsSync(p));
+  if (!encontrado) return responder(res, 404, `No encontrado: falta el archivo ${nombre} en GitHub`, "text/plain");
+  fs.readFile(encontrado, (err, data) => {
     if (err) return responder(res, 404, "No encontrado", "text/plain");
     responder(res, 200, data.toString(), "text/html");
   });
